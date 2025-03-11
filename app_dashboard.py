@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from sklearn.neighbors import NearestNeighbors
-#https://projet8-ys94.onrender.com/
+#https://projet8-1-vuju.onrender.com/
 # === 1) CHARGEMENT DU MODÈLE ET DES DONNÉES ===
 model = pickle.load(open('model.pkl', 'rb'))
 data = pd.read_csv('test_df_api.csv')
