@@ -21,11 +21,13 @@ data_train_scaled = data_train.copy()
 explainer = shap.TreeExplainer(model['classifier'])
 
 # === 2) SIDEBAR POUR CHOISIR LE CLIENT ===
+st.sidebar.header("🔍 Sélection du client")
 st.sidebar.header("Client ID Selection")
 client_id = st.sidebar.selectbox("Choose a Client ID:", data['SK_ID_CURR'])
 
 # === 3) TITRE ET INTRODUCTION ===
-st.title("Dashboard Crédit d'un Client")
+
+st.title("📊 Dashboard Crédit Accessible")
 st.write("Ce dashboard affiche la prédiction et l'explication SHAP pour un client donné.")
 
 # === 4) VÉRIFICATION DE L'EXISTENCE DU CLIENT ===
@@ -39,16 +41,16 @@ if client_id:
         st.write(client_data)
 
         # === 4.2) PRÉDICTION DU RISQUE DE DÉFAUT ===
-        st.subheader("Default Probability Prediction")
+        st.subheader("📈 Probabilité de défaut")
         info_client = client_data.drop('SK_ID_CURR', axis=1)
         prediction = model.predict_proba(info_client)[0][1]
         st.write(f"Default Probability: {prediction:.3f}")
 
         # Décision selon un seuil
         threshold = 0.5
-        decision = "Approved" if prediction < threshold else "Rejected"
-        decision_color = "green" if decision == "Approved" else "red"
-        st.markdown(f"<h3 style='color:{decision_color};'>Loan Decision: {decision}</h3>", unsafe_allow_html=True)
+        decision = "✅ Approuvé" if prediction < threshold else "❌ Refusé"
+       
+        st.markdown(f"### {decision}")
 
         # === Création de la jauge ===
         fig_gauge = go.Figure(go.Indicator(
@@ -60,8 +62,8 @@ if client_id:
                 'axis': {'range': [0, 1]},
                 'bar': {'color': "black"},
                 'steps': [
-                    {'range': [0, 0.5], 'color': "green"},
-                    {'range': [0.5, 1], 'color': "red"}
+                    {'range': [0, 0.5], 'color': "blue"},
+                    {'range': [0.5, 1], 'color': "orange"}
                 ],
                 'threshold': {
                     'line': {'color': "black", 'width': 4},
@@ -72,7 +74,7 @@ if client_id:
         ))
         st.plotly_chart(fig_gauge)
         # === 5) EXPLICATION SHAP GLOBALE ===
-        st.subheader("SHAP Global Explanation")
+        st.subheader("🔬 Explication SHAP Globale")
         # Calcul des SHAP values globales
         shap_vals_global = explainer.shap_values(data_scaled.drop('SK_ID_CURR', axis=1))
 
@@ -106,7 +108,7 @@ if client_id:
         st.pyplot(fig_global)
 
         # === 6) EXPLICATION SHAP LOCALE ===
-        st.subheader("SHAP Local Explanation")
+        st.subheader("🔍 Explication SHAP Locale")
         X_client = client_data.drop('SK_ID_CURR', axis=1)
         shap_values_local = explainer(X_client)
         if isinstance(shap_values_local, list):
@@ -120,6 +122,7 @@ if client_id:
 
        
         # === 8) ANALYSE DES VOISINS ===
+        st.subheader("🔍 Analyse des voisins similaires")
         def get_data_voisins(client_id: int):
             features = list(data_train_scaled.columns)
             features.remove('SK_ID_CURR')
@@ -172,7 +175,7 @@ if client_id:
             st.error("Aucun voisin trouvé.")
 
         # === 6) MODIFICATION DES FEATURES ET NOUVELLE PRÉDICTION ===
-        st.subheader("Modification des Features et Nouvelle Prédiction")
+        st.subheader("✏️ Modification des Features et Nouvelle Prédiction")
 
         # Extraire les 10 features les plus influentes
         shap_importance = np.abs(local_explanation.values)
@@ -228,9 +231,8 @@ if client_id:
             new_prediction = model.predict_proba(new_client_data)[0][1]
             st.write(f"Nouvelle probabilité de défaut : {new_prediction:.3f}")
 
-            new_decision = "Approved" if new_prediction < threshold else "Rejected"
-            new_decision_color = "green" if new_decision == "Approved" else "red"
-            st.markdown(f"<h3 style='color:{new_decision_color};'>Nouvelle décision : {new_decision}</h3>", unsafe_allow_html=True)
+            new_decision = "✅ Approuvé" if new_prediction < threshold else "❌ Refusé"
+            st.markdown(f"### {new_decision}")
 
             # Nouvelle explication SHAP locale
             new_shap_values_local = explainer(new_client_data)
